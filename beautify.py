@@ -1,56 +1,77 @@
 #!/usr/bin/env python3
 
-import subprocess as sp
-import errno
 import json
-from time import sleep
 from pathlib import Path
+from appdirs import AppDirs
+import os
+import sys
+from time import sleep
 
 
-config_file = Path(sp.os.getenv('HOME')).joinpath('.beautifyrc')
-walls_dir = ''
+print("""
+
+  ▓▓▓▓▓▓▓▓▓▓ 
+ ░▓ Author ▓ Abdullah <https://abdullah.today> 
+ ░▓▓▓▓▓▓▓▓▓▓ 
+ ░░░░░░░░░░ 
+
+""")
+
+print("""
+Usage:-
+beautify <Path to wallpapers> <Duration>
+""")
+
+dirs = AppDirs('beautify', 'Abdullah')
 
 
-def getting_started():
-    global walls_dir
-    if sp.os.path.exists(config_file):
-        with open(config_file, 'r') as f:
-            data = json.load(f)
-            walls_dir = data.get('walls_dir')
-    else:
-        print("Looks like you haven't configured beautify yet. Lets do it now.")
-        config = {}
-        walls_dir = input("Where are your wallpapers located? Type the absolute path. ")
-        config['walls_dir'] = walls_dir
-        with open(config_file, 'w+') as f:
-            json.dump(config, f)
+def walls_path(path):
+    try:
+        with open(Path(dirs.user_config_dir)/'config', 'w+') as f:
+            d = {}
+            d['walls_dir'] = path
+            json.dump(d, f)
+            f.close()
+    except FileNotFoundError:
+        os.makedirs(dirs.user_config_dir)
+        walls_path(path)
 
 
-getting_started()
+def getting_ready():
+    try:
+        with open(Path(dirs.user_config_dir)/'config', 'r') as f:
+            fetch_data = json.load(f)
+            walls_dir = fetch_data.get('walls_dir')
+            return walls_dir
+
+    except FileNotFoundError:
+        return sys.exit(f"Please run {dirs.appname} with wallpapers path")
+    except (KeyError, json.decoder.JSONDecodeError):
+        os.remove(Path(dirs.user_config_dir)/'config')
+        return sys.exit(f"""
+        {dirs.appname} wasn't able to get correct data. Old configuration file
+        is removed. Please run {dirs.appname} with wallpapers path again.
+        """)
+
+
+def start_it(duration=600):
+    wallpapers = os.listdir(getting_ready())
+    for i in range(len(wallpapers)):
+        wallpapers[i] = str(Path(getting_ready()).joinpath(wallpapers[i]))
+    while True:
+        for i in wallpapers:
+            os.system(f"feh --bg-scale '{i}'")
+            sleep(duration)
+
 
 try:
-    walls = sp.os.listdir(walls_dir)
-except IOError as e:
-    if e.errno is errno.ENOENT:
-        print("You have mistyped the wallpapers directory. Please recheck and try again.")
-        sp.os.remove(config_file)
-        getting_started()
-
-
-walls_file = str(Path(sp.os.getenv('HOME')).joinpath('.fehbg'))
-for i in range(len(walls)):
-    walls[i] = str(Path(walls_dir).joinpath(walls[i]))
-
-
-def beautify():
-    for i in walls:
-        sp.run(['sh', walls_file])
-        with open(walls_file, 'w+') as f:
-            print(f"""#!/bin/sh
-feh --bg-scale {i}
-""", file=f)
-            f.close()
-        sleep(1)
-
-
-beautify()
+    if Path.is_dir(Path(sys.argv[1])):
+        walls_path(sys.argv[1])
+        getting_ready()
+        start_it(int(sys.argv[2]))
+    elif not Path.is_dir(Path(sys.argv[1])):
+        print(sys.argv[1] + " isn't a directory. Please enter path of a directory.")
+except ValueError:
+    print("Please enter a digit for duration between wallpapers's changes")
+except IndexError:
+    start_it()
