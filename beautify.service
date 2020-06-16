@@ -5,8 +5,9 @@ After=xorg.target
 [Service]
 Environment=DISPLAY=:0
 # Change path to where you put the beautify.py executable and your wallpapers collection path and duration as well.
-ExecStart=/home/ak/bin/beautify /home/ak/pix/wall/collection 300
-Restart=always
+# %h stands for user homedir.
+ExecStart=%h/.local/bin/beautify %h/Pictures 300
+Restart=on-abnormal
 
 [Install]
 WantedBy=default.target
