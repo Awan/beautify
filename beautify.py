@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 import json
 from pathlib import Path
@@ -10,10 +10,10 @@ from time import sleep
 
 print("""
 
-  ▓▓▓▓▓▓▓▓▓▓ 
- ░▓ Author ▓ Abdullah <https://abdullah.today> 
- ░▓▓▓▓▓▓▓▓▓▓ 
- ░░░░░░░░░░ 
+  ▓▓▓▓▓▓▓▓▓▓
+ ░▓ Author ▓ Abdullah <https://abdullah.today>
+ ░▓▓▓▓▓▓▓▓▓▓
+ ░░░░░░░░░░
 
 """)
 
